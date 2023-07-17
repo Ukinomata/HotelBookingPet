@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Регистрация</title>
+</head>
+<body>
+
+<h1>Авторизация</h1>
+
+<form>
+    <label for="username">Имя пользователя</label>
+    <input type="text" id="username" name="username" required><br><br>
+    <label for="password">Пароль сучки!!!!</label>
+    <input type="text" id="password" name="password" required><br><br>
+    <input type="button" value="войти" onclick="sendValues()">
+</form>
+</body>
+<script>
+    function getValuesFromInput() {
+        var val1 = document.getElementById("username").value
+        var val2 = document.getElementById("password").value
+
+        return [val1,val2]
+    }
+
+    function redirectToURL() {
+        window.location.href = "/profile"
+    }
+
+    function sendValues() {
+        var values = getValuesFromInput()
+        var xhr = new XMLHttpRequest()
+
+        xhr.open('POST',window.location.href)
+        xhr.onload = function (){
+            if (xhr.status === 200){
+                console.log(xhr.responseText)
+                redirectToURL()
+            }else {
+                console.log('you made mistake: '+xhr.status)
+            }
+        }
+
+        data = {username: values[0],password: values[1]}
+
+        xhr.send(JSON.stringify(data))
+    }
+</script>
+</html>

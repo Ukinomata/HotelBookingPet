@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Бронирование отелей</title>
+</head>
+<body>
+<h1>Бронирование отелей</h1>
+<label for="search"></label>
+<input type="text" style="width: 500px" id="search" name="search" placeholder="Введите город в который вы планируете поехать">
+<input type="submit" onclick="sendInput()" value="Поиск">
+</body>
+<script>
+    function getValuesFromInput() {
+        var val = document.getElementById("search").value
+
+        return val
+    }
+
+    function sendInput() {
+        var val = getValuesFromInput()
+        var xhr = new XMLHttpRequest()
+
+        xhr.open('POST',window.location.href)
+        xhr.onload = function (){
+            if (xhr.status === 200) {
+                console.log(xhr.responseText)
+            }else {
+                console.log('you made mistake: '+xhr.status)
+            }
+        }
+        var data = {search: val}
+        xhr.send(JSON.stringify(data))
+    }
+</script>
+</html>
