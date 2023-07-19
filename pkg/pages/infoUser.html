@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Информация о пользователе:</title>
+</head>
+<body>
+<h1>Информация о пользователе:</h1>
+<img src="data:image/jpeg;jpeg;base64,{{.PhotoBase64}}" width="200" height="200" alt="Фотография"><br>
+<div>Имя: {{.Name}}</div><br>
+<div>Фамилия: {{.LastName}}</div><br>
+<div>Дата Рождения: {{.DOB}}</div><br>
+<div>ID: {{.Id}}</div><br>
+
+<a href="/profile/correctinfo">Изменить данные</a>
+<a href="/profile">Вернуться в профиль</a>
+</body>
+</html>

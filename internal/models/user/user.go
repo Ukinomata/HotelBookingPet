@@ -1,11 +1,15 @@
 package user
 
 import (
+	"HotelBooking/internal/models/infoUser"
 	"HotelBooking/pkg/helper"
 	"HotelBooking/pkg/logging"
 	"database/sql"
+	"encoding/base64"
 	"github.com/gorilla/sessions"
+	"io"
 	"net/http"
+	"os"
 )
 
 type User struct {
@@ -19,6 +23,31 @@ func (u *User) SignUp(db *sql.DB, logger logging.Logger) {
 	data := `INSERT INTO users(username, hash_password) VALUES($1,$2)`
 
 	if _, err := db.Exec(data, u.Username, helper.Hashing(u.Password)); err != nil {
+		logger.Info(err)
+		return
+	}
+
+	data = `SELECT id FROM users WHERE username = $1`
+
+	if err := db.QueryRow(data, u.Username).Scan(&u.UserID); err != nil {
+		logger.Info(err)
+		return
+	}
+
+	file, err := os.Open("/Users/artemlukmanov/GolandProjects/HotelBooking/pkg/pages/channels4_profile.jpg")
+	if err != nil {
+		logger.Info(err)
+		return
+	}
+
+	photoData, err := io.ReadAll(file)
+	if err != nil {
+		logger.Info(err)
+		return
+	}
+
+	data = `INSERT INTO info_about_user(user_id,name,last_name,dob,photo) VALUES ($1,$2,$3,$4,$5)`
+	if _, err = db.Exec(data, u.UserID, "default", "default", "1990-01-01", photoData); err != nil {
 		logger.Info(err)
 		return
 	}
@@ -51,8 +80,14 @@ func (u *User) FillProfile(db *sql.DB, logger logging.Logger) {
 	}
 }
 
-func (u *User) CompareStatus(db *sql.DB, logger logging.Logger) bool {
-	return false
+func (u *User) GetInfoAboutUser(db *sql.DB, logger logging.Logger) (info infoUser.InfoUser) {
+	data := `SELECT user_id,name,last_name,dob,photo FROM info_about_user WHERE user_id = $1`
+
+	if err := db.QueryRow(data, u.UserID).Scan(&info.Id, &info.Name, &info.LastName, &info.DOB, &info.Photo); err != nil {
+		logger.Info(err)
+	}
+	info.PhotoBase64 = base64.StdEncoding.EncodeToString(info.Photo)
+	return info
 }
 
 func ValidSessionOrNot(usr *User, store *sessions.CookieStore, logger logging.Logger, w http.ResponseWriter, r *http.Request, db *sql.DB) bool {

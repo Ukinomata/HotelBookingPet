@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Информация о пользователе</title>
+</head>
+<body>
+<h1>Изменить данные:</h1>
+<form id="myForm">
+    <label for="name">Имя</label>
+    <input type="text" id="name" name="name" required><br>
+    <label for="lastname">Фамилия</label>
+    <input type="text" id="lastname" name="lastname" required><br>
+    <label for="dob">Дата Рождения</label>
+    <input type="date" id="dob" name="dob" required><br>
+    <input type="file" id="photo" name="photo" value="" required>
+    <input type="submit" value="Отправить">
+</form><br>
+
+<a href="/profile/info">Back to info page</a><br>
+<a href="/profile">Back to Profile</a>
+</body>
+<script>
+    function redirectUrl() {
+        window.location.href = "/profile/info"
+    }
+
+
+    document.getElementById('myForm').addEventListener('submit',function (event){
+        event.preventDefault()
+        var form = event.target;
+        var formData = new FormData(form);
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST','/profile/correctinfo');
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState === 4 && xhr.status === 200){
+                var response = JSON.parse(xhr.responseText);
+                console.log(response)
+                redirectUrl()
+            }
+        };
+        xhr.send(formData)
+    })
+</script>
+</html>
