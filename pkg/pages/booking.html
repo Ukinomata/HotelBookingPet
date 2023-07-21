@@ -6,42 +6,18 @@
 </head>
 <body>
 <h1>Бронирование отелей</h1>
-<form onsubmit="event.preventDefault()">
-    <label for="search"></label>
-    <input type="text" style="width: 500px" id="search" name="search"
+<form>
+    <label for="searchInput"></label>
+    <input type="text" style="width: 500px" id="searchInput" name="searchInput"
            placeholder="Введите город в который вы планируете поехать">
-    <input type="button" onclick="sendInput()" value="Поиск"><br><br>
+    <input type="button" onclick="redirectURL('searchInput')" value="Поиск"><br><br>
 </form >
-
 <a href="/profile">Назад</a>
 </body>
 <script>
-    function getValuesFromInput() {
-        var val = document.getElementById("search").value
-
-        return val
-    }
-
-    function refreshPage() {
-        location.reload()
-    }
-
-
-    function sendInput() {
-        var val = getValuesFromInput()
-        var xhr = new XMLHttpRequest()
-
-        xhr.open('POST', window.location.href)
-        xhr.onload = function () {
-            if (xhr.status === 200) {
-                console.log(xhr.responseText)
-                refreshPage()
-            } else {
-                console.log('you made mistake: ' + xhr.status)
-            }
-        }
-        data = {search: val}
-        xhr.send(JSON.stringify(data))
+    function redirectURL(search) {
+        var val = document.getElementById(search).value
+        window.location.href = "/profile/booking/"+val
     }
 </script>
 </html>

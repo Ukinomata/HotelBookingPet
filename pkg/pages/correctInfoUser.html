@@ -14,7 +14,7 @@
     <label for="dob">Дата Рождения</label>
     <input type="date" id="dob" name="dob" required><br>
     <input type="file" id="photo" name="photo" value="" required>
-    <input type="submit" value="Отправить">
+    <input type="button" onclick="sendValues()" value="Отправить">
 </form><br>
 
 <a href="/profile/info">Back to info page</a><br>
@@ -25,21 +25,19 @@
         window.location.href = "/profile/info"
     }
 
-
-    document.getElementById('myForm').addEventListener('submit',function (event){
-        event.preventDefault()
-        var form = event.target;
-        var formData = new FormData(form);
+    function sendValues() {
+        var formData = new FormData(document.getElementById("myForm"))
         var xhr = new XMLHttpRequest();
-        xhr.open('POST','/profile/correctinfo');
-        xhr.onreadystatechange = function () {
-            if (xhr.readyState === 4 && xhr.status === 200){
-                var response = JSON.parse(xhr.responseText);
-                console.log(response)
+        xhr.open('POST',window.location.href)
+        xhr.onload = function () {
+            if (xhr.status === 200) {
+                console.log(xhr.responseText)
                 redirectUrl()
+            }else {
+                console.log('you made mistake: ' + xhr.status)
             }
-        };
+        }
         xhr.send(formData)
-    })
+    }
 </script>
 </html>

@@ -11,41 +11,37 @@ type Hotel struct {
 	Address   string
 }
 
-type Search struct {
-	Id      int
-	Request string `json:"search"`
-	Hotels  []Hotel
-}
+func (h *Hotel) FillInfo(db *sql.DB, logger logging.Logger) {
+	data := `SELECT hotel_name,address FROM hotels WHERE id = $1`
 
-func (s *Search) GetResults(db *sql.DB, logger logging.Logger) {
-	data := `SELECT id FROM cities WHERE city_name = $1`
-
-	if err := db.QueryRow(data, s.Request).Scan(&s.Id); err != nil {
+	if err := db.QueryRow(data, h.Id).Scan(&h.HotelName, &h.Address); err != nil {
 		logger.Info(err)
 		return
 	}
 }
 
-func (s *Search) GetHotels(db *sql.DB, logger logging.Logger) {
-	data := `SELECT id,hotel_name,address FROM hotels WHERE city_id = $1`
+type Search struct {
+	Id      int
+	Request string
+	Hotels  []Hotel
+}
 
-	query, err := db.Query(data, s.Id)
+func (s *Search) GetResults(db *sql.DB, logger logging.Logger) {
+	data := `SELECT id,hotel_name,address FROM hotels WHERE city_id = (SELECT id FROM cities WHERE city_name = $1)`
+
+	query, err := db.Query(data, s.Request)
 	if err != nil {
 		logger.Info(err)
 		return
 	}
 
-	defer query.Close()
-
 	for query.Next() {
-		htl := Hotel{}
-
+		var htl Hotel
 		err = query.Scan(&htl.Id, &htl.HotelName, &htl.Address)
 		if err != nil {
 			logger.Info(err)
 			return
 		}
-
 		s.Hotels = append(s.Hotels, htl)
 	}
 	if query.Err() != nil {

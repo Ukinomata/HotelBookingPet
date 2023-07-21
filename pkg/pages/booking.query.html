@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Бронирование отелей</title>
+</head>
+<body>
+<h1>Бронирование отелей</h1>
+<form>
+    <label for="searchInput"></label>
+    <input type="text" style="width: 500px" id="searchInput" name="searchInput"
+           placeholder="Введите город в который вы планируете поехать">
+    <input type="button" onclick="redirectURL('searchInput')" value="Поиск"><br><br>
+</form>
+<h1>Результаты поиска</h1>
+<ul>
+    {{if eq (len .Hotels) 0}}
+        <li>Ничего не найдено</li>
+    {{else}}
+        {{range $index,$value := .Hotels}}
+            <li>ID отеля: {{$value.Id}}<br>
+                Название Отеля: {{$value.HotelName}}<br>
+                Адрес отеля: {{$value.Address}}<br>
+                <button type="button" onclick="redirectToHotelURL({{$value.Id}})"> Перейти на страницу Отеля</button>
+            </li>
+        {{end}}
+    {{end}}
+</ul>
+<a href="/profile">Назад</a><br>
+<a href="/profile/booking">Очистить поиск</a>
+</body>
+<script>
+    function redirectURL(search) {
+        var val = document.getElementById(search).value
+        window.location.href = "/profile/booking/" + val
+    }
+
+    function redirectToHotelURL(id) {
+        window.location.href = window.location.href + '/' + id
+    }
+
+</script>
+</html>

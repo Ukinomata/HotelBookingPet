@@ -9,10 +9,11 @@ import (
 	"HotelBooking/pkg/logging"
 	"database/sql"
 	"encoding/json"
-	"fmt"
+	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
 	"io"
 	"net/http"
+	"strconv"
 )
 
 const (
@@ -25,25 +26,30 @@ type handler struct {
 	logger logging.Logger
 	store  *sessions.CookieStore
 	db     *sql.DB
+	router *mux.Router
 }
 
-func NewHandler(logger logging.Logger, store *sessions.CookieStore, db *sql.DB) handlers.Handler {
+func NewHandler(logger logging.Logger, store *sessions.CookieStore, db *sql.DB, route *mux.Router) handlers.Handler {
 	return &handler{
 		logger: logger,
 		store:  store,
 		db:     db,
+		router: route,
 	}
 }
 
 func (h *handler) Register() {
 	//тут будут хэндлеры
-	http.HandleFunc("/signup", h.signupHandler)
-	http.HandleFunc("/login", h.loginHandler)
-	http.HandleFunc("/profile", h.profileHandler)
-	http.HandleFunc("/logout", h.logoutHandler)
-	http.HandleFunc("/profile/booking", h.bookingHandler)
-	http.HandleFunc("/profile/info", h.infoHandler)
-	http.HandleFunc("/profile/correctinfo", h.correctInfoHandler)
+	h.router.HandleFunc("/signup", h.signupHandler)
+	h.router.HandleFunc("/login", h.loginHandler)
+	h.router.HandleFunc("/profile", h.profileHandler)
+	h.router.HandleFunc("/logout", h.logoutHandler)
+	h.router.HandleFunc("/profile/booking", h.bookingHandler)
+	h.router.HandleFunc("/profile/booking/{query}", h.bookingQueryHandler)
+	h.router.HandleFunc("/profile/booking/{query}/{id}", h.HotelHandler)
+	h.router.HandleFunc("/profile/info", h.infoHandler)
+	h.router.HandleFunc("/profile/correctinfo", h.correctInfoHandler)
+
 }
 
 func (h *handler) signupHandler(w http.ResponseWriter, r *http.Request) {
@@ -158,32 +164,45 @@ func (h *handler) bookingHandler(w http.ResponseWriter, r *http.Request) {
 	if not != true {
 		return
 	}
-	fmt.Println(usr)
 	switch r.Method {
-	case http.MethodPost:
-		srch := &search.Search{}
-
-		all, err := io.ReadAll(r.Body)
-		if err != nil {
-			h.logger.Info(err)
-			return
-		}
-
-		err = json.Unmarshal(all, &srch)
-
-		if err != nil {
-			h.logger.Info(err)
-			return
-		}
-
-		fmt.Println(srch)
-		srch.GetResults(h.db, h.logger)
-		srch.GetHotels(h.db, h.logger)
-		fmt.Println(srch.Hotels)
-		//todo cделать так чтобы после нажатия на кнопку поиск отображали все отели в введенном городе
 	default:
 		helper.LoadPage(w, "booking", nil)
 		return
+	}
+}
+
+func (h *handler) bookingQueryHandler(w http.ResponseWriter, r *http.Request) {
+	usr := &user.User{}
+
+	not := user.ValidSessionOrNot(usr, h.store, h.logger, w, r, h.db)
+	if not != true {
+		return
+	}
+	switch r.Method {
+	default:
+		srch := &search.Search{
+			Request: mux.Vars(r)["query"],
+		}
+
+		srch.GetResults(h.db, h.logger)
+
+		helper.LoadPage(w, "booking.query", srch)
+	}
+}
+
+func (h *handler) HotelHandler(w http.ResponseWriter, r *http.Request) {
+	usr := &user.User{}
+
+	not := user.ValidSessionOrNot(usr, h.store, h.logger, w, r, h.db)
+	if not != true {
+		return
+	}
+	switch r.Method {
+	default:
+		id, _ := strconv.Atoi(mux.Vars(r)["id"])
+		hotel := search.Hotel{Id: id}
+		hotel.FillInfo(h.db, h.logger)
+		helper.LoadPage(w, "hotel", hotel)
 	}
 }
 
@@ -239,4 +258,4 @@ func (h *handler) correctInfoHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-//todo you stop here при нажатии на кнопку отправить данные изменяются а url остается тем же хуй пойми с чем связано, будем фиксить
+//todo при выборе отеля назначать определенный url. где частью url будет id отеля(dinamicHandler/dinamicURL)
