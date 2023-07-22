@@ -6,6 +6,86 @@
 </head>
 <body>
 <h1>Отель {{.HotelName}}!Добро Пожаловать!</h1>
+<form>
+    <label for="enter">Дата заезда</label>
+    <input type="date" id="enter" min="" max=""><br>
+    <label for="out">Дата выезда</label>
+    <input type="date" id="out" min="" max=""><br>
+    <label for="peoples">Количество людей</label>
+    <input type="number" id="peoples"><br>
+    <button type="button" id="sendDates" onclick="sendInfo()">Забронировать</button>
+    <p id="result"></p>
+</form>
+<br>
+<a href="/profile/booking">К поиску</a><br>
 <a href="/profile">Профиль</a>
 </body>
+<script>
+    function updateMinDate() {
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', 'https://worldtimeapi.org/api/timezone/Etc/UTC', true);
+        xhr.onload = function () {
+            if (xhr.status === 200) {
+                var response = JSON.parse(xhr.responseText);
+                var currentDate = new Date(response.datetime);
+                currentDate.setDate(currentDate.getDate() + 1);
+                var dd = String(currentDate.getDate()).padStart(2, '0');
+                var mm = String(currentDate.getMonth() + 1).padStart(2, '0');
+                var yyyy = currentDate.getFullYear();
+                var minDate = yyyy + '-' + mm + '-' + dd;
+                document.getElementById("enter").setAttribute("min", minDate);
+                document.getElementById("out").setAttribute("min", minDate);
+            }
+        };
+        xhr.send();
+    }
+
+    function updateMaxDate() {
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', 'https://worldtimeapi.org/api/timezone/Etc/UTC', true);
+        xhr.onload = function () {
+            var response = JSON.parse(xhr.responseText);
+            var currentDate = new Date(response.datetime);
+            currentDate.setFullYear(currentDate.getFullYear() + 1);
+            var dd = String(currentDate.getDate()).padStart(2, '0');
+            var mm = String(currentDate.getMonth() + 1).padStart(2, '0');
+            var yyyy = currentDate.getFullYear();
+            var minDate = yyyy + '-' + mm + '-' + dd;
+            document.getElementById("enter").setAttribute("max", minDate);
+            document.getElementById("out").setAttribute("max", minDate);
+        };
+        xhr.send()
+    }
+
+    function getValuesFromInput() {
+        var val1 = document.getElementById('enter').value
+        var val2 = document.getElementById('out').value
+
+        var val3 = parseInt(document.getElementById('peoples').value)
+
+        return [val1, val2, val3]
+    }
+
+    function showResult(enter, out,peoples) {
+        var result = 'you booking hotel on date: ' + enter + ' : ' + out + ' for ' + peoples + ' peoples'
+        document.getElementById('result').innerHTML = result
+    }
+
+    function sendInfo() {
+        var values = getValuesFromInput()
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', window.location.href)
+        xhr.onload = function () {
+            if (xhr.status === 200) {
+                console.log(xhr.status)
+                showResult(values[0],values[1],values[2])
+                event.preventDefault()
+            } else {
+                console.log('you made mistake: ' + xhr.status)
+            }
+        }
+        data = {enter: values[0], out: values[1], peoples: values[2]}
+        xhr.send(JSON.stringify(data))
+    }
+</script>
 </html>

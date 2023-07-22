@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Reservations</title>
+</head>
+<body>
+<h1>Мои Брони:</h1>
+<ul>
+    {{if eq (len .Reserves) 0}}
+        <li>Вы пока ничего не заброниловали.Сделай это скорее.</li>
+    {{else}}
+        {{range .Reserves}}
+            <li>
+                Название отеля: {{.HotelInfo.HotelName}}<br>
+                Адрес отеля: {{.HotelInfo.FullAddress}}<br>
+                Дата заезда: {{.Enter}}<br>
+                Дата выезда: {{.Out}}<br>
+                Количество гостей: {{.Peoples}}<br>
+                <input type="button" onclick="sendInfo({{.HotelInfo.Id}})" value="Отменить бронь">
+            </li>
+        {{end}}
+    {{end}}
+</ul>
+
+<a href="/profile">Вернуться в профиль</a>
+</body>
+</html>
+
+
+<script>
+    function refreshPage() {
+        location.reload()
+    }
+
+
+    function sendInfo(id) {
+        var xhr = new XMLHttpRequest()
+        xhr.open('DELETE', window.location.href)
+        xhr.onload = function () {
+            if (xhr.status === 200) {
+                console.log(xhr.responseText)
+                refreshPage()
+            } else {
+                console.log('you made mistake: ' + xhr.status)
+            }
+        }
+        data = {hotel_id: id}
+        xhr.send(JSON.stringify(data))
+    }
+</script>

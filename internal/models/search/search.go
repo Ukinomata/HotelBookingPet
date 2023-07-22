@@ -3,12 +3,14 @@ package search
 import (
 	"HotelBooking/pkg/logging"
 	"database/sql"
+	"fmt"
 )
 
 type Hotel struct {
-	Id        int
-	HotelName string
-	Address   string
+	Id          int
+	HotelName   string
+	Address     string
+	FullAddress string
 }
 
 func (h *Hotel) FillInfo(db *sql.DB, logger logging.Logger) {
@@ -18,6 +20,24 @@ func (h *Hotel) FillInfo(db *sql.DB, logger logging.Logger) {
 		logger.Info(err)
 		return
 	}
+
+	data = `SELECT countries.country_name, cities.city_name
+FROM hotels
+JOIN cities ON hotels.city_id = cities.id
+JOIN countries ON cities.country_id = countries.id
+WHERE hotels.id = $1`
+
+	var (
+		country = ""
+		city    = ""
+	)
+
+	if err := db.QueryRow(data, h.Id).Scan(&country, &city); err != nil {
+		logger.Info(err)
+		return
+	}
+
+	h.FullAddress = fmt.Sprintf("%s ,%s, %s", country, city, h.Address)
 }
 
 type Search struct {
