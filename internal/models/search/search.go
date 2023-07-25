@@ -8,15 +8,16 @@ import (
 
 type Hotel struct {
 	Id          int
-	HotelName   string
-	Address     string
+	CityId      int    `json:"city_id"`
+	HotelName   string `json:"hotel_name"`
+	Address     string `json:"address"`
 	FullAddress string
 }
 
 func (h *Hotel) FillInfo(db *sql.DB, logger logging.Logger) {
-	data := `SELECT hotel_name,address FROM hotels WHERE id = $1`
+	data := `SELECT hotel_name,city_id,address FROM hotels WHERE id = $1`
 
-	if err := db.QueryRow(data, h.Id).Scan(&h.HotelName, &h.Address); err != nil {
+	if err := db.QueryRow(data, h.Id).Scan(&h.HotelName, &h.CityId, &h.Address); err != nil {
 		logger.Info(err)
 		return
 	}
@@ -38,6 +39,15 @@ WHERE hotels.id = $1`
 	}
 
 	h.FullAddress = fmt.Sprintf("%s ,%s, %s", country, city, h.Address)
+}
+
+func (h *Hotel) AppendHotel(db *sql.DB, logger logging.Logger) {
+	data := `INSERT INTO hotels(hotel_name, city_id, address) VALUES ($1,$2,$3)`
+
+	if _, err := db.Exec(data, h.HotelName, h.CityId, h.Address); err != nil {
+		logger.Info(err)
+		return
+	}
 }
 
 type Search struct {

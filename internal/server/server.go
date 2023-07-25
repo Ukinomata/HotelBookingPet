@@ -5,11 +5,13 @@ import (
 	"HotelBooking/internal/models/booking"
 	"HotelBooking/internal/models/infoUser"
 	"HotelBooking/internal/models/search"
+	"HotelBooking/internal/models/selects"
 	"HotelBooking/internal/models/user"
 	"HotelBooking/pkg/helper"
 	"HotelBooking/pkg/logging"
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
 	"io"
@@ -51,7 +53,8 @@ func (h *handler) Register() {
 	h.router.HandleFunc("/profile/reservations", h.MyReservations)
 	h.router.HandleFunc("/profile/info", h.infoHandler)
 	h.router.HandleFunc("/profile/correctinfo", h.correctInfoHandler)
-
+	h.router.HandleFunc("/profile/appendhotels", h.appendHotels)
+	h.router.HandleFunc("/profile/correctstatus", h.correctStatus)
 }
 
 //регистрация нового пользователя
@@ -331,4 +334,70 @@ func (h *handler) correctInfoHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-//todo сделать так чтобы когда дата выезда совпадала с сегодняшней датой, строка этой брони удалялась.
+//добавить новый отель(superUser/GOD)
+
+func (h *handler) appendHotels(w http.ResponseWriter, r *http.Request) {
+	usr := &user.User{}
+
+	not := user.ValidSessionOrNot(usr, h.store, h.logger, w, r, h.db)
+	if not != true {
+		return
+	}
+
+	if usr.Status == userStatus {
+		http.Redirect(w, r, "/profile", http.StatusForbidden)
+		return
+	}
+
+	cntry := &selects.Country{}
+	cntry.GetCountries(h.db, h.logger)
+	cntry.GetCities(h.db, h.logger)
+
+	switch r.Method {
+	case http.MethodPost:
+		fmt.Println("it is post")
+		hotel := &search.Hotel{}
+
+		all, err := io.ReadAll(r.Body)
+		if err != nil {
+			h.logger.Info(err)
+			return
+		}
+
+		err = json.Unmarshal(all, &hotel)
+		if err != nil {
+			h.logger.Info(err)
+			return
+		}
+
+		hotel.AppendHotel(h.db, h.logger)
+	default:
+		helper.LoadPage(w, "appendHotels", cntry)
+	}
+
+}
+
+func (h *handler) correctStatus(w http.ResponseWriter, r *http.Request) {
+	usr := &user.User{}
+
+	not := user.ValidSessionOrNot(usr, h.store, h.logger, w, r, h.db)
+	if not != true {
+		return
+	}
+
+	if usr.Status != godStatus {
+		http.Redirect(w, r, "/profile", http.StatusForbidden)
+		return
+	}
+
+	usrs := user.GetAllUsers(h.db, h.logger)
+	fmt.Println(usrs)
+
+	switch r.Method {
+	default:
+		helper.LoadPage(w, "correctStatus", usrs)
+	}
+}
+
+//todo придумать как реализовать смену status(как вариант создать страницу с информацией как реализовано в info handler)
+//todo при нажатии на кнопку "перейти" url страницы будет меняться на url с информацией пользователя, там будет кнопка для того чтобы назначить статус(superUser)

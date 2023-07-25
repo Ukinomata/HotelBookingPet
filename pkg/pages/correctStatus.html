@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Correct Status</title>
+</head>
+<body>
+<h1>Королевская вкладка. Сменить статус пользователя</h1>
+<form>
+    <label for="searchInput">Введите пользователя: </label>
+    <input size="100px" type="text" id="searchInput" name="searchInput" placeholder="введите пользователя">
+    <input type="button" onclick="sendInfo()">
+    <div id="result"></div>
+</form>
+<div id="suggestions"></div>
+</body>
+<script>
+    function sendInfo() {
+        var val = document.getElementById("searchInput").value
+        var xhr = new XMLHttpRequest()
+        xhr.open('POST',window.location.href)
+        xhr.onload = function () {
+            if (xhr.status === 200){
+                console.log(xhr.responseText)
+            }else {
+                console.log('you made mistake: '+xhr.status)
+            }
+        }
+        data = {username: val}
+        xhr.send(JSON.stringify(data))
+    }
+//todo придумать реализацию назначения статус
+    var database = {{.}}
+
+        function showSuggestions(input) {
+            var suggestions = [];
+            // Поиск вариантов запросов, которые содержат введенный текст
+            for (var i = 0; i < database.length; i++) {
+                if (database[i]["username"].includes(input)) {
+                    suggestions.push(database[i]);
+                }
+            }
+            // Отображение подсказок
+            var suggestionsContainer = document.getElementById("suggestions");
+            suggestionsContainer.innerHTML = "";
+            for (var j = 0; j < suggestions.length; j++) {
+                var suggestionElement = document.createElement("div");
+                suggestionElement.textContent = suggestions[j]["username"];
+                suggestionElement.addEventListener("click", function () {
+                    document.getElementById("searchInput").value = this.textContent
+                })
+                suggestionsContainer.appendChild(suggestionElement);
+            }
+        }
+    // Обработчик события ввода в поисковую строку
+    document.getElementById("searchInput").addEventListener("input", function () {
+        showSuggestions(document.getElementById("searchInput").value);
+    })
+</script>
+</html>

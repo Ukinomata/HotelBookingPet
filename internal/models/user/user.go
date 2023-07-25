@@ -90,6 +90,35 @@ func (u *User) GetInfoAboutUser(db *sql.DB, logger logging.Logger) (info infoUse
 	return info
 }
 
+func GetAllUsers(db *sql.DB, logger logging.Logger) (usrs []User) {
+	data := `SELECT id,username,status FROM users WHERE status != 'god'`
+
+	query, err := db.Query(data)
+	if err != nil {
+		logger.Info(err)
+		return nil
+	}
+
+	defer query.Close()
+
+	for query.Next() {
+		var usr User
+		err = query.Scan(&usr.UserID, &usr.Username, &usr.Status)
+		if err != nil {
+			logger.Info(err)
+			return nil
+		}
+
+		usrs = append(usrs, usr)
+	}
+	if query.Err() != nil {
+		logger.Info(err)
+		return nil
+	}
+
+	return usrs
+}
+
 func ValidSessionOrNot(usr *User, store *sessions.CookieStore, logger logging.Logger, w http.ResponseWriter, r *http.Request, db *sql.DB) bool {
 	session, err := store.Get(r, "ukinos")
 	if err != nil {

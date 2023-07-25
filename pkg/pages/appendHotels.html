@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Добавить новый отель</title>
+</head>
+<body>
+<h1>Выберите страну:</h1>
+<select style="width: 150px" id="countrySelect" onchange="populateCities()">
+    <option value="" selected>Выберите страну</option>
+    {{range .AllCountries}}
+        <option value="{{.ID}}">{{.CountryName}}</option>
+    {{end}}
+</select>
+<h1>Выберите город:</h1>
+<select style="width: 150px" id="citySelect">
+</select>
+<h1>Введите данные об отеле: </h1>
+<form>
+    <label for="hotelName">Введите название отеля:</label><br>
+    <input type="text" id="hotelName" name="hotelName" required><br>
+    <label for="address">Введите адрес отеля:</label><br>
+    <input type="text" id="address" name="address" required><br>
+    <input type="button" onclick="sendInfo()" value="Зарегистрировать отель">
+</form>
+<p id="result"></p><br>
+<a href="/profile">Back to profile</a>
+</body>
+<script>
+    function showResult(hotelName) {
+        var result = 'You append hotel '+ hotelName
+        document.getElementById('result').innerHTML = result
+    }
+    function getAllInfo() {
+        var val1 = parseInt(document.getElementById('citySelect').value)
+        var val2 = document.getElementById('hotelName').value
+        var val3 = document.getElementById('address').value
+
+        return [val1, val2, val3]
+    }
+
+    function refreshPage() {
+        location.reload()
+    }
+
+    function sendInfo() {
+        var values = getAllInfo()
+        var xhr = new XMLHttpRequest()
+        xhr.open('POST', window.location.href)
+        xhr.onload = function () {
+            if (xhr.status === 200) {
+                console.log(xhr.responseText)
+                showResult(values[1])
+            }else {
+                console.log('you made mistake: '+xhr.status)
+            }
+        }
+        data = {city_id:values[0],hotel_name:values[1],address:values[2]}
+        xhr.send(JSON.stringify(data))
+    }
+
+    function populateCities() {
+        var countrySelect = document.getElementById("countrySelect");
+        var citySelect = document.getElementById("citySelect");
+        var countryID = countrySelect.value;
+        // Очищаем содержимое второго select
+        citySelect.innerHTML = "";
+        // Заполняем второй select данными из параметра Cities
+        var cities = {{.Cities}};
+        for (var i = 0; i < cities.length; i++) {
+            if (cities[i].CountryID == countryID) {
+                var option = document.createElement("option");
+                option.value = cities[i].ID;
+                option.text = cities[i].CityName;
+                citySelect.add(option);
+            }
+        }
+    }
+</script>
+</html>
