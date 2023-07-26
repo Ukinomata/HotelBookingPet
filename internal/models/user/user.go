@@ -80,6 +80,24 @@ func (u *User) FillProfile(db *sql.DB, logger logging.Logger) {
 	}
 }
 
+func (u *User) FillProfileByUsername(db *sql.DB, logger logging.Logger) {
+	data := `SELECT id,status FROM users WHERE username = $1`
+
+	if err := db.QueryRow(data, u.Username).Scan(&u.UserID, &u.Status); err != nil {
+		logger.Info(err)
+		return
+	}
+}
+
+func (u *User) SetNewStatus(db *sql.DB, logger logging.Logger) {
+	data := `UPDATE users SET status = $1 WHERE id = $2`
+
+	if _, err := db.Exec(data, u.Status, u.UserID); err != nil {
+		logger.Info(err)
+		return
+	}
+}
+
 func (u *User) GetInfoAboutUser(db *sql.DB, logger logging.Logger) (info infoUser.InfoUser) {
 	data := `SELECT user_id,name,last_name,dob,photo FROM info_about_user WHERE user_id = $1`
 
@@ -87,6 +105,7 @@ func (u *User) GetInfoAboutUser(db *sql.DB, logger logging.Logger) (info infoUse
 		logger.Info(err)
 	}
 	info.PhotoBase64 = base64.StdEncoding.EncodeToString(info.Photo)
+	info.Status = u.Status
 	return info
 }
 

@@ -55,6 +55,7 @@ func (h *handler) Register() {
 	h.router.HandleFunc("/profile/correctinfo", h.correctInfoHandler)
 	h.router.HandleFunc("/profile/appendhotels", h.appendHotels)
 	h.router.HandleFunc("/profile/correctstatus", h.correctStatus)
+	h.router.HandleFunc("/profile/info/{name}", h.checkInfoAboutUserHandler)
 }
 
 //регистрация нового пользователя
@@ -377,6 +378,46 @@ func (h *handler) appendHotels(w http.ResponseWriter, r *http.Request) {
 
 }
 
+func (h *handler) checkInfoAboutUserHandler(w http.ResponseWriter, r *http.Request) {
+	usr := &user.User{}
+
+	not := user.ValidSessionOrNot(usr, h.store, h.logger, w, r, h.db)
+	if not != true {
+		return
+	}
+
+	if usr.Status != godStatus {
+		http.Redirect(w, r, "/profile", http.StatusForbidden)
+		return
+	}
+
+	name := mux.Vars(r)["name"]
+
+	anotherUser := &user.User{Username: name}
+	anotherUser.FillProfileByUsername(h.db, h.logger)
+	fmt.Println(anotherUser)
+	info := anotherUser.GetInfoAboutUser(h.db, h.logger)
+	switch r.Method {
+	case http.MethodPost:
+		fmt.Println("it is post")
+		all, err := io.ReadAll(r.Body)
+		if err != nil {
+			h.logger.Info(err)
+			return
+		}
+
+		err = json.Unmarshal(all, &anotherUser)
+		if err != nil {
+			h.logger.Info(err)
+			return
+		}
+
+		anotherUser.SetNewStatus(h.db, h.logger)
+	default:
+		helper.LoadPage(w, "anotherInfoUser", info)
+	}
+}
+
 func (h *handler) correctStatus(w http.ResponseWriter, r *http.Request) {
 	usr := &user.User{}
 
@@ -391,13 +432,14 @@ func (h *handler) correctStatus(w http.ResponseWriter, r *http.Request) {
 	}
 
 	usrs := user.GetAllUsers(h.db, h.logger)
-	fmt.Println(usrs)
 
 	switch r.Method {
 	default:
 		helper.LoadPage(w, "correctStatus", usrs)
 	}
 }
+
+//задача сделать так чтобы при вводе url менялся на url с id пользователя
 
 //todo придумать как реализовать смену status(как вариант создать страницу с информацией как реализовано в info handler)
 //todo при нажатии на кнопку "перейти" url страницы будет меняться на url с информацией пользователя, там будет кнопка для того чтобы назначить статус(superUser)

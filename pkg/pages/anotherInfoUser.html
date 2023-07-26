@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Информация о пользователе:</title>
+</head>
+<body>
+<h1>Информация о пользователе:</h1>
+<img src="data:image/jpeg;jpeg;base64,{{.PhotoBase64}}" width="200" height="200" alt="Фотография"><br>
+<div>Имя: {{.Name}}</div>
+<br>
+<div>Фамилия: {{.LastName}}</div>
+<br>
+<div>Дата Рождения: {{.DOB}}</div>
+<br>
+<div>ID: {{.Id}}</div>
+<br>
+<div>Status: {{.Status}}</div>
+{{if eq .Status "superUser"}}
+    <input type="button" value="сделать плебеем ебаным" id="newStatus"><br>
+{{else if eq .Status "user"}}
+    <input type="button" value="сделать суперпользователем" id="newStatus"><br>
+{{else}}
+    <input type="button" value="ты долбаеб?" onclick="redirectURL()"><br>
+{{end}}
+
+<a href="/profile">Вернуться в профиль</a>
+</body>
+<script>
+    function redirectURL() {
+        window.location.href = "/profile"
+    }
+
+    function refreshPage() {
+        location.reload()
+    }
+
+    document.getElementById("newStatus").addEventListener('click', function () {
+        var xhr = new XMLHttpRequest()
+        xhr.open('POST', window.location.href)
+        xhr.onload = function () {
+            if (xhr.status === 200) {
+                console.log(xhr.responseText)
+                refreshPage()
+            } else {
+                console.log('you made mistake: ' + xhr.status)
+            }
+        }
+        var status = {{.Status}}
+        if (status == "superUser"){
+            data = {status:"user"}
+        }else if(status == "god"){
+            data = {status:"god"}
+        } else{
+            data = {status:"superUser"}
+        }
+        xhr.send(JSON.stringify(data))
+    })
+
+</script>
+</html>

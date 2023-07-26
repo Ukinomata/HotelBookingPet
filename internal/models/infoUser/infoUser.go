@@ -12,6 +12,7 @@ type InfoUser struct {
 	DOB         string `json:"dob"`
 	Photo       []byte `json:"photo"`
 	PhotoBase64 string
+	Status      string
 }
 
 func (info *InfoUser) CorrectInfo(db *sql.DB, logger logging.Logger) {

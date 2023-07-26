@@ -9,25 +9,14 @@
 <form>
     <label for="searchInput">Введите пользователя: </label>
     <input size="100px" type="text" id="searchInput" name="searchInput" placeholder="введите пользователя">
-    <input type="button" onclick="sendInfo()">
+    <input type="button" onclick="redirectUrl()">
     <div id="result"></div>
 </form>
 <div id="suggestions"></div>
 </body>
 <script>
-    function sendInfo() {
-        var val = document.getElementById("searchInput").value
-        var xhr = new XMLHttpRequest()
-        xhr.open('POST',window.location.href)
-        xhr.onload = function () {
-            if (xhr.status === 200){
-                console.log(xhr.responseText)
-            }else {
-                console.log('you made mistake: '+xhr.status)
-            }
-        }
-        data = {username: val}
-        xhr.send(JSON.stringify(data))
+    function redirectUrl() {
+        window.location.href = '/profile/info/'+document.getElementById("searchInput").value
     }
 //todo придумать реализацию назначения статус
     var database = {{.}}
